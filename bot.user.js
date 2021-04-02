@@ -61,7 +61,7 @@ async function onMessage(msg) {
         arr.forEach(i => i.index = (j++));
         let sorted = arr.sort((a, b) => b.votes-a.votes);
         // console.log(sorted, await getImageData(sorted[1].id));
-        console.log(`VOTE: ${sorted[0].index}`);
+        console.log(`VOTE: ${sorted[1].index}`);
         unsafeWindow.document
             .querySelector("*[currentround^='{']")
             .shadowRoot
@@ -71,7 +71,7 @@ async function onMessage(msg) {
             .shadowRoot
             .querySelector("faceplate-form")
             .querySelector("fieldset")
-            .children[sorted[0].index-1]
+            .children[sorted[1].index-1]
             .click();
     }
     if(msg.winDelta === 6 && msg.secondsUntilVoteReveal === 0) {
@@ -85,7 +85,7 @@ async function onMessage(msg) {
 async function gid(id) {
     let req = await fetch(`https://cors-anywhere.dimden.dev/https://spacescience.tech/ratio.php?id=${id}`);
     let json = await req.json();
-    return json.map(i => +i.votes).reduce((a, b) => a + b, 0)/json.length;
+    return json.map(i => +i.votes).slice(-10).reduce((a, b) => a + b, 0)/json.slice(-10).length;
 }
 
 setTimeout(() => {location.reload()}, 60000*10);
