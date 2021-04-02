@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         SecondBot
 // @namespace    https://dimden.dev/
-// @version      1.0
+// @version      1.1
 // @description  Tried to guess the second one
 // @author       dimden
 // @match        https://second-api.reddit.com/embed?platform=desktop&nightmode=1
 // @grant        unsafeWindow
+// @grant        GM_xmlhttpRequest
 // @run-at       document-start
 // ==/UserScript==
 
@@ -30,23 +31,37 @@ function onConnection(socket) {
     }, 500);
 };
 
-let startGathering = false;
 let imgdata = [];
 let prevSeconds = -1;
-function onMessage(msg) {
+let shouldGet = true;
+async function onMessage(msg) {
     msg = msg.current_round;
-    // console.log(msg);
-    if(msg.winDelta === 6 && msg.secondsUntilVoteReveal === 0) {
-        startGathering = true;
+    if(msg.winDelta === 9 && shouldGet) {
+        shouldGet = false;
         imgdata = msg.images;
-    }
-    if(msg.winDelta === 6 && msg.secondsUntilVoteReveal !== 0 && prevSeconds === 0) {
+        let [i1, i2, i3] = [await gid(imgdata[0].id), await gid(imgdata[1].id), await gid(imgdata[2].id)];
+        console.log(i1, i2, i3);
+        let arr = [
+            {
+                img: imgdata[0],
+                votes: i1
+            },
+            {
+                img: imgdata[1],
+                votes: i2
+            },
+            {
+                img: imgdata[2],
+                votes: i3
+            }
+        ];
+
         // make decision
-        // console.log("imgs", imgdata);
         let j = 1;
-        imgdata.forEach(i => i.index = (j++));
-        let sorted = imgdata.sort((a, b) => a.votes-b.votes);
-        console.log(`VOTE: ${sorted[1].index}`);
+        arr.forEach(i => i.index = (j++));
+        let sorted = arr.sort((a, b) => b.votes-a.votes);
+        // console.log(sorted, await getImageData(sorted[1].id));
+        console.log(`VOTE: ${sorted[0].index}`);
         unsafeWindow.document
             .querySelector("*[currentround^='{']")
             .shadowRoot
@@ -56,9 +71,21 @@ function onMessage(msg) {
             .shadowRoot
             .querySelector("faceplate-form")
             .querySelector("fieldset")
-            .children[sorted[1].index-1]
+            .children[sorted[0].index-1]
             .click();
+    }
+    if(msg.winDelta === 6 && msg.secondsUntilVoteReveal === 0) {
+        shouldGet = true;
+        imgdata = msg.images;
     }
 
     prevSeconds = msg.secondsUntilVoteReveal;
 }
+
+async function gid(id) {
+    let req = await fetch(`https://cors-anywhere.dimden.dev/https://spacescience.tech/ratio.php?id=${id}`);
+    let json = await req.json();
+    return json.map(i => +i.votes).reduce((a, b) => a + b, 0)/json.length;
+}
+
+setTimeout(() => {location.reload()}, 60000*10);
