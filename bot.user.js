@@ -69,8 +69,8 @@ function onMessage(msg) {
         imgdata.forEach(i => i.index = (j++));
         let sorted = imgdata.sort((a, b) => a.votes-b.votes);
         let index = unsafeWindow.how2vote === 1 ? 1 : unsafeWindow.how2vote === 2 ? 2 : (Math.random() < 0.5 ? 1 : 2)
-        console.log(`VOTE: ${sorted[2].index}`);
-        sii = sorted[2].id;
+        console.log(`VOTE: ${sorted[index].index}`);
+        sii = sorted[index].id;
         unsafeWindow.document
             .querySelector("*[currentround^='{']")
             .shadowRoot
@@ -80,7 +80,7 @@ function onMessage(msg) {
             .shadowRoot
             .querySelector("faceplate-form")
             .querySelector("fieldset")
-            .children[sorted[2].index-1]
+            .children[sorted[index].index-1]
             .click();
     }
 
