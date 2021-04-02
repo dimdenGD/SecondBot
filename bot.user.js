@@ -101,6 +101,7 @@ function updateOverlay(obj) {
 }
 
 function startOverlay() {
+    document.querySelector("*[aria-live='polite']").hidden = true;
     document.body.insertAdjacentHTML("beforeend", `
 <style>
 #sb-overlay {
